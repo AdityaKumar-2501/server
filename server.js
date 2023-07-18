@@ -24,9 +24,13 @@ app.get('/', async (req, res) => {
 app.post('/', async (req, res) => {
     try {
         const prompt = req.body.prompt;
-        const response = await openai.createCompletion({
+        const response = await openai.createChatCompletion({
             model: "gpt-3.5-turbo",
-            messages: [`${prompt}`],
+            // messages: [`${prompt}`],
+            messages: [
+                { role: 'user', content: `${prompt}` }, // User message
+                { role: 'assistant', content: 'Hello, how can I assist you?' } // Initial assistant message
+            ],
             temperature: 0,
             max_tokens: 3000,
             top_p: 1,
