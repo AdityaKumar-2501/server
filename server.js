@@ -2,6 +2,7 @@ import express from 'express';
 import * as dotenv from 'dotenv';
 import cors from 'cors';
 import { Configuration, OpenAIApi } from 'openai';
+import axios from 'axios';
 
 dotenv.config();
 
@@ -10,6 +11,12 @@ const configuration = new Configuration({
 });
 
 const openai = new OpenAIApi(configuration);
+
+
+// 👇️ handle uncaught exceptions
+process.on('uncaughtException', function (err) {
+    console.log(err);
+  });
 
 const app = express();
 app.use(cors());
@@ -22,29 +29,54 @@ app.get('/', async (req, res) => {
 });
 
 app.post('/', async (req, res) => {
-    try {
-        const prompt = req.body.prompt;
-        const response = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo",
-            // messages: [`${prompt}`],
-            messages: [
-                { role: 'user', content: `${prompt}` }, // User message
-                { role: 'assistant', content: 'Hello, how can I assist you?' } // Initial assistant message
-            ],
-            temperature: 0,
-            max_tokens: 3000,
-            top_p: 1,
-            frequency_penalty: 0.5,
-            presence_penalty: 0,
-        });
+    // try {
+    //     const prompt = req.body.prompt;
+    //     const response = await openai.createChatCompletion({
+    //         model: "gpt-3.5-turbo",
+    //         messages: [
+    //             { role: 'user', content: `${prompt}` }, // User message
+    //             { role: 'assistant', content: 'Hello, how can I assist you?' } // Initial assistant message
+    //         ],
+    //         temperature: 0,
+    //         max_tokens: 3000,
+    //         top_p: 1,
+    //         frequency_penalty: 0.5,
+    //         presence_penalty: 0,
+    //     });
 
+    //     res.status(200).send({
+    //         bot: response.data.choices[0].text
+    //     })
+    // } catch (error) {
+    //     console.log(error);
+    //     res.status(500).send({error});
+    // }
+    const prompt = req.body.prompt;
+    axios.post("https://api.openai.com/v1/chat/completions",
+    {
+        "model": "gpt-3.5-turbo",
+         "messages": [
+                   { "role": "user", "content": `${prompt}` },
+                   { "role": "assistant", "content": "Hello, how can I assist you?" }
+               ],
+        "temperature": 0
+   },
+    { headers:{
+        "Authorization" : "Bearer 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",
+        "Content-Type" : "application/json",
+    },
+    }).then((response) => {
         res.status(200).send({
-            bot: response.data.choices[0].text
-        })
-    } catch (error) {
-        console.log(error);
-        res.status(500).send({error});
-    }
+                    bot: response.data.choices[0].message.content
+                })
+        console.log(response.data.choices[0].message.content);
+    }).catch((err) => {
+        console.log(err);
+    })
+
+
+    return null;
+
 });
 
 app.listen(5000, ()=> console.log('Server is running on port http://localhost:5000'));
