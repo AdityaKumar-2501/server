@@ -62,7 +62,7 @@ app.post('/', async (req, res) => {
         "temperature": 0
    },
     { headers:{
-        "Authorization" : "Bearer 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",
+        "Authorization" : `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type" : "application/json",
     },
     }).then((response) => {
